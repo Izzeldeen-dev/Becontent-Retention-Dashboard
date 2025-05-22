@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Retention Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 24px;
+        }
+        
+        .stat-icon.blue { background-color: #dbeafe; color: #2563eb; }
+        .stat-icon.green { background-color: #dcfce7; color: #16a34a; }
+        .stat-icon.yellow { background-color: #fef3c7; color: #d97706; }
+        .stat-icon.red { background-color: #fee2e2; color: #dc2626; }
+        
+        .stat-info h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .stat-info p {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .alerts-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+        
+        .alerts-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alerts-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .alert-urgent {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        
+        .alert-item {
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        
+        .alert-item.critical {
+            background-color: #fef2f2;
+            border-color: #fecaca;
+        }
+        
+        .alert-item.warning {
+            background-color: #fffbeb;
+            border-color: #fed7aa;
+        }
+        
+        .alert-item.info {
+            background-color: #eff6ff;
+            border-color: #bfdbfe;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-content h4 {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .alert-content p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .dismiss-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .dismiss-btn:hover {
+            color: #6b7280;
+            background-color: #f3f4f6;
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .chart-placeholder {
+            height: 250px;
+            background: linear-gradient(45deg, #f3f4f6 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f3f4f6 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f3f4f6 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-success {
+            background-color: #16a34a;
+        }
+        
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .table-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background-color: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+        
+        tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.healthy {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-badge.at-risk {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.critical {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+        
+        .trend.up { color: #16a34a; }
+        .trend.down { color: #dc2626; }
+        .trend.stable { color: #6b7280; }
+        
+        .details {
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #fee2e2;
+        }
+        
+        .legend-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .legend-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .legend-section h4 {
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        
+        .legend-section ul {
+            list-style: none;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .legend-section li {
+            margin-bottom: 4px;
+        }
+        
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .category-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .time-filter-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .time-filter-header {
+            margin-bottom: 20px;
+        }
+        
+        .time-filter-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #111827;
+        }
+        
+        .time-filter-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .time-filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background-color: white;
+        }
+        
+        .filter-group:nth-child(2) {
+            flex-direction: row;
+            align-items: end;
+            gap: 8px;
+        }
+        
+        .filter-group:nth-child(2) label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            margin-right: 8px;
+            align-self: center;
+        }
+        
+        .time-insights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .insight-card:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .insight-card:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .insight-card:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .insight-card h4 {
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        
+        .insight-card p {
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        .insight-card strong {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .timeline-view {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-container {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #10b981, #f59e0b, #ef4444);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 24px;
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 6px;
+            margin-left: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            border: 2px solid white;
+            box-shadow: 0 0 0 3px #10b981;
+        }
+        
+        .timeline-item.warning::before {
+            background: #f59e0b;
+            box-shadow: 0 0 0 3px #f59e0b;
+        }
+        
+        .timeline-item.critical::before {
+            background: #ef4444;
+            box-shadow: 0 0 0 3px #ef4444;
+        }
+        
+        .timeline-date {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .timeline-content h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .timeline-content p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .milestone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .milestone-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .milestone-card.achieved {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .milestone-card.pending {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .milestone-card.missed {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .milestone-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .milestone-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+        
+        .milestone-description {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Customer Retention Dashboard</h1>
+            <p>Monitor customer health scores and retention metrics</p>
+        </div>
+
+        <!-- Time Frame Filter -->
+        <div class="time-filter-section">
+            <div class="time-filter-header">
+                <h3>📅 Time Analysis</h3>
+                <p>Analyze customer health across different time periods</p>
+            </div>
+            <div class="time-filter-controls">
+                <div class="filter-group">
+                    <label>Time Period:</label>
+                    <select id="time-period" onchange="updateTimeFrame()">
+                        <option value="lifetime">Lifetime (All Time)</option>
+                        <option value="12months">Last 12 Months</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="3months">Last 3 Months</option>
+                        <option value="1month">Last Month</option>
+                        <option value="current">Current Period</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Custom Range:</label>
+                    <input type="date" id="start-date" onchange="updateTimeFrame()">
+                    <span style="margin: 0 8px;">to</span>
+                    <input type="date" id="end-date" onchange="updateTimeFrame()">
+                </div>
+                <div class="filter-group">
+                    <label>View:</label>
+                    <select id="view-type" onchange="updateTimeFrame()">
+                        <option value="summary">Summary View</option>
+                        <option value="detailed">Detailed Timeline</option>
+                        <option value="trends">Trend Analysis</option>
+                        <option value="milestones">Key Milestones</option>
+                    </select>
+                </div>
+            </div>
+            <div class="time-insights" id="time-insights">
+                <div class="insight-card">
+                    <h4>📈 Lifetime Value</h4>
+                    <p>Average customer relationship: <strong>18 months</strong></p>
+                </div>
+                <div class="insight-card">
+                    <h4>🎯 Retention Rate</h4>
+                    <p>12-month retention: <strong>87%</strong></p>
+                </div>
+                <div class="insight-card">
+                    <h4>⚡ Health Trend</h4>
+                    <p>Overall trajectory: <strong>Improving (+0.3)</strong></p>
+                </div>
+                <div class="insight-card">
+                    <h4>🚨 Risk Periods</h4>
+                    <p>Most critical: <strong>Months 3-6</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">👥</div>
+                <div class="stat-info">
+                    <h3>Total Customers</h3>
+                    <p id="total-customers">3</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">✓</div>
+                <div class="stat-info">
+                    <h3>Healthy</h3>
+                    <p id="healthy-customers" style="color: #16a34a;">1</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow">⚠</div>
+                <div class="stat-info">
+                    <h3>At Risk</h3>
+                    <p id="at-risk-customers" style="color: #d97706;">1</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">📉</div>
+                <div class="stat-info">
+                    <h3>Critical</h3>
+                    <p id="critical-customers" style="color: #dc2626;">1</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="alerts-section">
+            <div class="alerts-header">
+                <span style="font-size: 24px;">🔔</span>
+                <h2>Active Alerts (<span id="alert-count">3</span>)</h2>
+                <span class="alert-urgent" id="urgent-badge">1 Urgent</span>
+            </div>
+            <div class="alerts-grid" id="alerts-container">
+                <div class="alert-item critical">
+                    <div class="alert-content">
+                        <h4>Global Solutions</h4>
+                        <p>Customer is in critical status (4.2)</p>
+                    </div>
+                    <button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>
+                </div>
+                <div class="alert-item warning">
+                    <div class="alert-content">
+                        <h4>TechStart Inc</h4>
+                        <p>Customer is at risk (7.1)</p>
+                    </div>
+                    <button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>
+                </div>
+                <div class="alert-item info">
+                    <div class="alert-content">
+                        <h4>Global Solutions</h4>
+                        <p>Low session attendance: 45%</p>
+                    </div>
+                    <button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>Health Score Trends</h3>
+                <div class="chart-placeholder">
+                    📈 Interactive charts will show here<br>
+                    (Trend analysis over time)
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Current Health Scores</h3>
+                <div class="chart-placeholder">
+                    📊 Bar chart comparison<br>
+                    (Current customer scores)
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Customer Button -->
+        <button class="btn" onclick="toggleAddForm()">
+            ➕ Add Customer
+        </button>
+
+        <!-- Add Customer Form -->
+        <div class="form-section hidden" id="add-customer-form">
+            <h3 style="margin-bottom: 16px;">Add New Customer</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="customer-name" placeholder="Enter customer name">
+                </div>
+                <div class="form-group">
+                    <label>NPS Score (0-10)</label>
+                    <input type="number" id="nps-score" min="0" max="10" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Session Show Up (%)</label>
+                    <input type="number" id="session-showup" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Response Time (days)</label>
+                    <input type="number" id="response-time" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Participation Level (0-10)</label>
+                    <input type="number" id="participation" min="0" max="10" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Session Scheduled</label>
+                    <select id="session-scheduled">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Survey Filled</label>
+                    <select id="survey-filled">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="addCustomer()">Add Customer</button>
+                <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Customer Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2>Customer Health Scores</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>NPS</th>
+                            <th>Engagement</th>
+                            <th>Health Score</th>
+                            <th>Trend</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-table">
+                        <tr>
+                            <td><strong>Acme Corp</strong></td>
+                            <td>9.0</td>
+                            <td>8.6</td>
+                            <td><strong>9.0</strong></td>
+                            <td><span class="trend stable">→ 0.0</span></td>
+                            <td><span class="status-badge healthy">Healthy</span></td>
+                            <td class="details">
+                                Show Up: 95%<br>
+                                Response: 1.0d<br>
+                                Scheduled: Yes<br>
+                                Participation: 8.5<br>
+                                Survey: Yes
+                            </td>
+                            <td><button class="delete-btn" onclick="deleteCustomer(1)">🗑</button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TechStart Inc</strong></td>
+                            <td>7.0</td>
+                            <td>7.3</td>
+                            <td><strong>7.1</strong></td>
+                            <td><span class="trend down">↓ 0.1</span></td>
+                            <td><span class="status-badge at-risk">At Risk</span></td>
+                            <td class="details">
+                                Show Up: 75%<br>
+                                Response: 2.5d<br>
+                                Scheduled: No<br>
+                                Participation: 6.0<br>
+                                Survey: Yes
+                            </td>
+                            <td><button class="delete-btn" onclick="deleteCustomer(2)">🗑</button></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Global Solutions</strong></td>
+                            <td>4.0</td>
+                            <td>4.5</td>
+                            <td><strong>4.2</strong></td>
+                            <td><span class="trend down">↓ 0.6</span></td>
+                            <td><span class="status-badge critical">Critical</span></td>
+                            <td class="details">
+                                Show Up: 45%<br>
+                                Response: 5.0d<br>
+                                Scheduled: No<br>
+                                Participation: 3.0<br>
+                                Survey: No
+                            </td>
+                            <td><button class="delete-btn" onclick="deleteCustomer(3)">🗑</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Scoring Legend -->
+        <div class="legend-section">
+            <h3>Scoring System</h3>
+            <div class="legend-grid">
+                <div>
+                    <h4>Health Score Calculation</h4>
+                    <ul>
+                        <li>• NPS Score: 60% weight</li>
+                        <li>• Engagement Score: 40% weight</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Engagement Components</h4>
+                    <ul>
+                        <li>• Session Show Up Rate: 40%</li>
+                        <li>• Participation Level: 35%</li>
+                        <li>• Message Response Time: 10%</li>
+                        <li>• Survey Completion: 10%</li>
+                        <li>• Session Scheduling: 5%</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <h4>Health Categories</h4>
+                <div class="categories">
+                    <span class="category-badge healthy">Green (8.0-10.0): Healthy</span>
+                    <span class="category-badge at-risk">Yellow (7.0-7.9): At Risk</span>
+                    <span class="category-badge critical">Red (0.0-6.9): Critical</span>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <h4>Alert Types</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; font-size: 0.875rem; color: #6b7280;">
+                    <div><strong>Critical Alerts:</strong> Customers with scores below 7.0 requiring immediate attention</div>
+                    <div><strong>Declining Trends:</strong> Score drops of 1+ points indicating deteriorating health</div>
+                    <div><strong>Metric Alerts:</strong> Specific issues like low attendance or slow response times</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced customer data with timeline information
+        let customers = [
+            {
+                id: 1,
+                name: "Acme Corp",
+                nps: 9,
+                sessionShowUp: 95,
+                messageResponseTime: 1,
+                sessionScheduled: true,
+                participationLevel: 8.5,
+                surveyFilled: true,
+                startDate: "2023-01-15",
+                timeline: [
+                    { date: "2023-01-15", event: "Customer Onboarded", score: 7.5, type: "milestone" },
+                    { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
+                    { date: "2023-06-10", event: "Quarterly Review", score: 8.3, type: "review" },
+                    { date: "2023-09-15", event: "Contract Renewal", score: 8.7, type: "milestone" },
+                    { date: "2024-01-20", event: "Annual Review", score: 9.0, type: "review" },
+                    { date: "2024-12-01", event: "Current Status", score: 9.0, type: "current" }
+                ]
+            },
+            {
+                id: 2,
+                name: "TechStart Inc",
+                nps: 7,
+                sessionShowUp: 75,
+                messageResponseTime: 2.5,
+                sessionScheduled: false,
+                participationLevel: 6,
+                surveyFilled: true,
+                startDate: "2023-06-01",
+                timeline: [
+                    { date: "2023-06-01", event: "Customer Onboarded", score: 8.2, type: "milestone" },
+                    { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
+                    { date: "2023-11-30", event: "Quarterly Review", score: 7.5, type: "review" },
+                    { date: "2024-03-10", event: "Support Escalation", score: 7.2, type: "incident" },
+                    { date: "2024-06-01", event: "Contract Renewal", score: 7.1, type: "milestone" },
+                    { date: "2024-12-01", event: "Current Status", score: 7.1, type: "current" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Global Solutions",
+                nps: 4,
+                sessionShowUp: 45,
+                messageResponseTime: 5,
+                sessionScheduled: false,
+                participationLevel: 3,
+                surveyFilled: false,
+                startDate: "2024-02-10",
+                timeline: [
+                    { date: "2024-02-10", event: "Customer Onboarded", score: 6.8, type: "milestone" },
+                    { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
+                    { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
+                    { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
+                    { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
+                ]
+            }
+        ];
+
+        // Time frame analysis functions
+        function updateTimeFrame() {
+            const period = document.getElementById('time-period').value;
+            const viewType = document.getElementById('view-type').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            updateTimeInsights(period);
+            updateTimelineView(viewType, period, startDate, endDate);
+        }
+
+        function updateTimeInsights(period) {
+            const insights = calculateTimeInsights(period);
+            const insightsContainer = document.getElementById('time-insights');
+            
+            insightsContainer.innerHTML = `
+                <div class="insight-card">
+                    <h4>📈 Average Relationship</h4>
+                    <p>${insights.avgRelationship}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>🎯 Retention Rate</h4>
+                    <p>${insights.retentionRate}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>⚡ Health Trend</h4>
+                    <p>${insights.healthTrend}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>🚨 Risk Analysis</h4>
+                    <p>${insights.riskAnalysis}</p>
+                </div>
+            `;
+        }
+
+        function calculateTimeInsights(period) {
+            // Calculate insights based on selected time period
+            let totalMonths = 0;
+            let healthChanges = [];
+            let retainedCustomers = 0;
+            
+            customers.forEach(customer => {
+                const startDate = new Date(customer.startDate);
+                const currentDate = new Date();
+                const monthsDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30);
+                totalMonths += monthsDiff;
+                
+                if (customer.timeline.length > 1) {
+                    const firstScore = customer.timeline[0].score;
+                    const lastScore = customer.timeline[customer.timeline.length - 1].score;
+                    healthChanges.push(lastScore - firstScore);
+                }
+                
+                if (calculateHealthScore(customer) >= 7) {
+                    retainedCustomers++;
+                }
+            });
+            
+            const avgRelationship = (totalMonths / customers.length).toFixed(1);
+            const retentionRate = ((retainedCustomers / customers.length) * 100).toFixed(0);
+            const avgHealthChange = healthChanges.reduce((a, b) => a + b, 0) / healthChanges.length;
+            const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
+            
+            return {
+                avgRelationship: `<strong>${avgRelationship} months</strong>`,
+                retentionRate: `<strong>${retentionRate}%</strong> healthy customers`,
+                healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
+                riskAnalysis: `<strong>${customers.filter(c => calculateHealthScore(c) < 7).length}</strong> customers at risk`
+            };
+        }
+
+        function updateTimelineView(viewType, period, startDate, endDate) {
+            // Remove existing timeline if present
+            const existingTimeline = document.querySelector('.timeline-view');
+            if (existingTimeline) {
+                existingTimeline.remove();
+            }
+            
+            if (viewType === 'detailed' || viewType === 'trends') {
+                createTimelineView(viewType, period);
+            } else if (viewType === 'milestones') {
+                createMilestonesView();
+            }
+        }
+
+        function createTimelineView(viewType, period) {
+            const timelineDiv = document.createElement('div');
+            timelineDiv.className = 'timeline-view';
+            
+            timelineDiv.innerHTML = `
+                <div class="timeline-header">
+                    <h3>${viewType === 'detailed' ? '📋 Detailed Timeline' : '📈 Trend Analysis'}</h3>
+                    <span style="font-size: 0.875rem; color: #6b7280;">Showing ${period === 'lifetime' ? 'all historical data' : period}</span>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    ${generateTimelineItems(viewType, period)}
+                </div>
+            `;
+            
+            document.querySelector('.charts-section').insertAdjacentElement('beforebegin', timelineDiv);
+        }
+
+        function generateTimelineItems(viewType, period) {
+            let allEvents = [];
+            
+            customers.forEach(customer => {
+                customer.timeline.forEach(event => {
+                    allEvents.push({
+                        ...event,
+                        customerName: customer.name,
+                        customerId: customer.id
+                    });
+                });
+            });
+            
+            // Sort by date
+            allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Filter by period if not lifetime
+            if (period !== 'lifetime') {
+                const cutoffDate = new Date();
+                switch(period) {
+                    case '1month':
+                        cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                        break;
+                    case '3months':
+                        cutoffDate.setMonth(cutoffDate.getMonth() - 3);
+                        break;
+                    case '6months':
+                        cutoffDate.setMonth(cutoffDate.getMonth() - 6);
+                        break;
+                    case '12months':
+                        cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
+                        break;
+                }
+                allEvents = allEvents.filter(event => new Date(event.date) >= cutoffDate);
+            }
+            
+            return allEvents.map(event => {
+                const eventClass = event.score < 7 ? 'critical' : event.score < 8 ? 'warning' : '';
+                const formattedDate = new Date(event.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                return `
+                    <div class="timeline-item ${eventClass}">
+                        <div class="timeline-date">${formattedDate}</div>
+                        <div class="timeline-content">
+                            <h4>${event.customerName}: ${event.event}</h4>
+                            <p>Health Score: ${event.score.toFixed(1)} | Type: ${event.type}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function createMilestonesView() {
+            const milestonesDiv = document.createElement('div');
+            milestonesDiv.className = 'timeline-view';
+            
+            const milestones = [
+                { title: "Customer Onboarding", description: "Initial setup complete", icon: "🚀", status: "achieved" },
+                { title: "First 30 Days", description: "Early engagement established", icon: "📈", status: "achieved" },
+                { title: "Quarterly Review", description: "Health assessment completed", icon: "📊", status: "achieved" },
+                { title: "6-Month Check", description: "Mid-term evaluation", icon: "🎯", status: "pending" },
+                { title: "Annual Renewal", description: "Contract renewal discussion", icon: "🔄", status: "pending" },
+                { title: "Expansion Opportunity", description: "Upselling discussion", icon: "📈", status: "missed" }
+            ];
+            
+            milestonesDiv.innerHTML = `
+                <div class="timeline-header">
+                    <h3>🎯 Key Milestones</h3>
+                    <span style="font-size: 0.875rem; color: #6b7280;">Customer journey checkpoints</span>
+                </div>
+                <div class="milestone-grid">
+                    ${milestones.map(milestone => `
+                        <div class="milestone-card ${milestone.status}">
+                            <div class="milestone-icon">${milestone.icon}</div>
+                            <div class="milestone-title">${milestone.title}</div>
+                            <div class="milestone-description">${milestone.description}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.querySelector('.charts-section').insertAdjacentElement('beforebegin', milestonesDiv);
+        }
+
+        // Initialize time frame functionality
+        function initializeTimeFrame() {
+            // Set default dates
+            const today = new Date();
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(today.getMonth() - 6);
+            
+            document.getElementById('start-date').value = sixMonthsAgo.toISOString().split('T')[0];
+            document.getElementById('end-date').value = today.toISOString().split('T')[0];
+            
+            updateTimeFrame();
+        }
+
+        // Calculate engagement score
+        function calculateEngagementScore(customer) {
+            let sessionScore = customer.sessionShowUp >= 90 ? 10 : customer.sessionShowUp >= 60 ? 7.5 : 3;
+            let responseScore = customer.messageResponseTime <= 2 ? 10 : customer.messageResponseTime <= 3 ? 7.5 : 3;
+            let scheduleScore = customer.sessionScheduled ? 10 : 3;
+            let participationScore = customer.participationLevel;
+            let surveyScore = customer.surveyFilled ? 10 : 3;
+
+            return (sessionScore * 0.4) + (responseScore * 0.1) + (scheduleScore * 0.05) + (participationScore * 0.35) + (surveyScore * 0.1);
+        }
+
+        // Calculate health score
+        function calculateHealthScore(customer) {
+            let npsScore = customer.nps;
+            let engagementScore = calculateEngagementScore(customer);
+            return (npsScore * 0.6) + (engagementScore * 0.4);
+        }
+
+        // Get health category
+        function getHealthCategory(score) {
+            if (score >= 8) return { color: 'healthy', label: 'Healthy' };
+            if (score >= 7) return { color: 'at-risk', label: 'At Risk' };
+            return { color: 'critical', label: 'Critical' };
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            let stats = { total: customers.length, healthy: 0, atRisk: 0, critical: 0 };
+            
+            customers.forEach(customer => {
+                let score = calculateHealthScore(customer);
+                let category = getHealthCategory(score);
+                if (category.color === 'healthy') stats.healthy++;
+                else if (category.color === 'at-risk') stats.atRisk++;
+                else stats.critical++;
+            });
+
+            document.getElementById('total-customers').textContent = stats.total;
+            document.getElementById('healthy-customers').textContent = stats.healthy;
+            document.getElementById('at-risk-customers').textContent = stats.atRisk;
+            document.getElementById('critical-customers').textContent = stats.critical;
+
+            updateCustomerTable();
+            updateAlerts();
+        }
+
+        // Update customer table
+        function updateCustomerTable() {
+            let tableBody = document.getElementById('customers-table');
+            tableBody.innerHTML = '';
+
+            customers.forEach(customer => {
+                let healthScore = calculateHealthScore(customer);
+                let engagementScore = calculateEngagementScore(customer);
+                let category = getHealthCategory(healthScore);
+
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${customer.name}</strong></td>
+                    <td>${customer.nps.toFixed(1)}</td>
+                    <td>${engagementScore.toFixed(1)}</td>
+                    <td><strong>${healthScore.toFixed(1)}</strong></td>
+                    <td><span class="trend stable">→ 0.0</span></td>
+                    <td><span class="status-badge ${category.color}">${category.label}</span></td>
+                    <td class="details">
+                        Show Up: ${customer.sessionShowUp}%<br>
+                        Response: ${customer.messageResponseTime}d<br>
+                        Scheduled: ${customer.sessionScheduled ? 'Yes' : 'No'}<br>
+                        Participation: ${customer.participationLevel}<br>
+                        Survey: ${customer.surveyFilled ? 'Yes' : 'No'}
+                    </td>
+                    <td><button class="delete-btn" onclick="deleteCustomer(${customer.id})">🗑</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update alerts
+        function updateAlerts() {
+            let alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = '';
+            let alertCount = 0;
+            let urgentCount = 0;
+
+            customers.forEach(customer => {
+                let score = calculateHealthScore(customer);
+                let category = getHealthCategory(score);
+
+                if (category.color === 'critical') {
+                    let alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert-item critical';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Customer is in critical status (${score.toFixed(1)})</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>
+                    `;
+                    alertsContainer.appendChild(alertDiv);
+                    alertCount++;
+                    urgentCount++;
+                }
+
+                if (category.color === 'at-risk') {
+                    let alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert-item warning';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Customer is at risk (${score.toFixed(1)})</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>
+                    `;
+                    alertsContainer.appendChild(alertDiv);
+                    alertCount++;
+                }
+
+                
